@@ -69,14 +69,23 @@ contract MetaMall is ERC4907 {
         stores.push();
 
         //Floor 0
-        for (uint16 i = 0; i < 32; i++) {
-            stores[0].push(Store(contractOwner, mint(), i, 100, 0, true, false));
-        }
+        
+            stores[0].push(Store(contractOwner, mint(), 0, 100, 0, true, false));
+            stores[0].push(Store(contractOwner, mint(), 1, 100, 0, true, false));
+            stores[0].push(Store(contractOwner, mint(), 2, 100, 0, true, false));
+            stores[0].push(Store(contractOwner, mint(), 3, 100, 0, true, false));
+            stores[0].push(Store(contractOwner, mint(), 4, 100, 0, true, false));
+            stores[0].push(Store(contractOwner, mint(), 5, 100, 0, true, false));
+            stores[0].push(Store(contractOwner, mint(), 6, 100, 0, true, false));
+            stores[0].push(Store(contractOwner, mint(), 7, 100, 0, true, false));
+            stores[0].push(Store(contractOwner, mint(), 8, 100, 0, true, false));
+            stores[0].push(Store(contractOwner, mint(), 9, 100, 0, true, false));
+
 
         //Floor 1
-        for (uint16 i = 0; i < 32; i++) {
+        /*for (uint16 i = 0; i < 32; i++) {
             stores[1].push(Store(contractOwner, mint(), i + uint16(stores[0].length), 50, 0, true, false));
-        }
+        }*/
     }
 
 
