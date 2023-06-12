@@ -53,13 +53,15 @@ contract MetaMall is ERC4907 {
 
         //Floor 0
         for (uint16 i = 0; i < 32; i++) {
-            stores[0].push(Store(contractOwner, mint(), i, 100000000000000000, 0, true, false));
+            stores[0].push(Store(address(this), mint(), i, 100000000000000000, 0, true, false));
         }
 
         //Floor 1
         for (uint16 i = 0; i < 32; i++) {
-            stores[1].push(Store(contractOwner, mint(), i + uint16(stores[0].length), 100000000000000000, 0, true, false));
+            stores[1].push(Store(address(this), mint(), i + uint16(stores[0].length), 100000000000000000, 0, true, false));
         }
+
+        setApprovalForAll(address(this), true);
     }
 
     //--------------- F L O O R   M A N A G E M E N T ----------------
@@ -99,7 +101,7 @@ contract MetaMall is ERC4907 {
         return getStoreDetails(stores[floor][index]);
     }
 
-    function getStoreDetails(Store memory store) internal view returns (StoreDetails memory) {
+    function getStoreDetails(Store memory store) public view returns (StoreDetails memory) {
         StoreDetails memory s = StoreDetails({
             owner: store.owner,
             tokenId: store.tokenId,
@@ -160,27 +162,27 @@ contract MetaMall is ERC4907 {
     //     return rented;
     // }
 
-    function getAvailableStores() public view returns (StoreDetails[] memory) {
-        uint count = 0;
-        uint index = 0;
+    // function getAvailableStores() public view returns (StoreDetails[] memory) {
+    //     uint count = 0;
+    //     uint index = 0;
 
-        StoreDetails[] memory available;
-        for (uint i = 0; i < stores.length; i++) {
-            for (uint j = 0; j < stores[i].length; j++) {
-                if (stores[i][j].isSaleable || stores[i][j].isRentable) { count++; }
-            }
-        }
+    //     StoreDetails[] memory available;
+    //     for (uint i = 0; i < stores.length; i++) {
+    //         for (uint j = 0; j < stores[i].length; j++) {
+    //             if (stores[i][j].isSaleable || stores[i][j].isRentable) { count++; }
+    //         }
+    //     }
 
-        available = new StoreDetails[](count);
-        for (uint i = 0; i < stores.length; i++) {
-            for (uint j = 0; j < stores[i].length; j++) {
-                if (stores[i][j].isSaleable || stores[i][j].isRentable) {
-                    available[index++] = getStoreDetails(stores[i][j]);
-                }
-            }
-        }
-        return available;
-    }
+    //     available = new StoreDetails[](count);
+    //     for (uint i = 0; i < stores.length; i++) {
+    //         for (uint j = 0; j < stores[i].length; j++) {
+    //             if (stores[i][j].isSaleable || stores[i][j].isRentable) {
+    //                 available[index++] = getStoreDetails(stores[i][j]);
+    //             }
+    //         }
+    //     }
+    //     return available;
+    // }
 
     // ----------------- S H O P   N F T   M A N A G E M E N T -----------------
 
@@ -198,7 +200,8 @@ contract MetaMall is ERC4907 {
 
     function setRentable(uint floor, uint storeNumber, bool _rentable) public {
         require(_isApprovedOrOwner(_msgSender(), stores[floor][storeNumber].tokenId), "Caller is not token owner nor approved");
-        require(floor < stores.length && storeNumber < stores[floor].length, "Invalid Store");
+        require(floor < stores.length, "Invalid Floor");
+        require(storeNumber < stores[floor][stores[floor].length].storeNumber , "Invalid Store");
 
         uint256 tokenId = stores[floor][storeNumber].tokenId;
         require(userOf(tokenId) == address(0), "Store already rented");
@@ -207,7 +210,8 @@ contract MetaMall is ERC4907 {
 
     function setSaleable(uint floor, uint storeNumber, bool _saleable) public {
         require(_isApprovedOrOwner(_msgSender(), stores[floor][storeNumber].tokenId), "Caller is not token owner nor approved");
-        require(floor < stores.length && storeNumber < stores[floor].length, "Invalid Store");
+        require(floor < stores.length, "Invalid Floor");
+        require(storeNumber < stores[floor][stores[floor].length].storeNumber , "Invalid Store");
 
         uint256 tokenId = stores[floor][storeNumber].tokenId;
         require(userOf(tokenId) == address(0), "Store is rented out. Wait for rent tenure to be over before selling.");
@@ -215,7 +219,8 @@ contract MetaMall is ERC4907 {
     }
 
     function rent(uint floor, uint storeNumber, uint256 _tokenId, uint64 month) public payable virtual {
-        require(floor < stores.length && storeNumber < stores[floor].length, "Invalid Store");
+       require(floor < stores.length, "Invalid Floor");
+        require(storeNumber < stores[floor][stores[floor].length].storeNumber , "Invalid Store");
 
         uint256 dueAmount = stores[floor][storeNumber].rent * month;
         require(msg.value == dueAmount, "Incorrect amount");
@@ -234,14 +239,16 @@ contract MetaMall is ERC4907 {
     }
 
     function buy(uint floor, uint storeNumber, uint256 _tokenId) public payable {
-        require(floor < stores.length && storeNumber < stores[floor].length, "Invalid Store");
-
+        require(floor < stores.length, "Invalid Floor");
+        require(storeNumber < stores[floor][stores[floor].length].storeNumber , "Invalid Store");
         require(stores[floor][storeNumber].isSaleable == true, "This land is not availble for sale.");
         require(msg.value >= stores[floor][storeNumber].price, "Incorrect amount");
 
-        payable(ownerOf(_tokenId)).transfer(stores[floor][storeNumber].price);
+        payable(ownerOf(_tokenId)).transfer(msg.value);
+        safeTransferFrom(ownerOf(_tokenId), msg.sender, _tokenId);
+
+        stores[floor][storeNumber].owner = msg.sender;
         stores[floor][storeNumber].isSaleable = false;
         stores[floor][storeNumber].isRentable = false;
-        safeTransferFrom(stores[floor][storeNumber].owner, msg.sender, stores[floor][storeNumber].tokenId);
     }
 }
