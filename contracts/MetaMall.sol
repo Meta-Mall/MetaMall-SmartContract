@@ -240,7 +240,7 @@ contract MetaMall is ERC4907 {
 
     function buy(uint floor, uint storeNumber, uint256 _tokenId) public payable {
         require(floor < stores.length, "Invalid Floor");
-        require(storeNumber < stores[floor][stores[floor].length].storeNumber , "Invalid Store");
+        require(storeNumber <= stores[floor][stores[floor].length -1].storeNumber , "Invalid Store");
         require(stores[floor][storeNumber].isSaleable == true, "This land is not availble for sale.");
         require(msg.value >= stores[floor][storeNumber].price, "Incorrect amount");
 
