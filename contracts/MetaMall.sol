@@ -201,7 +201,7 @@ contract MetaMall is ERC4907 {
     function setRentable(uint floor, uint storeNumber, bool _rentable) public {
         require(_isApprovedOrOwner(_msgSender(), stores[floor][storeNumber].tokenId), "Caller is not token owner nor approved");
         require(floor < stores.length, "Invalid Floor");
-        require(storeNumber < stores[floor][stores[floor].length].storeNumber , "Invalid Store");
+        require(storeNumber <= stores[floor][stores[floor].length - 1].storeNumber , "Invalid Store");
 
         uint256 tokenId = stores[floor][storeNumber].tokenId;
         require(userOf(tokenId) == address(0), "Store already rented");
@@ -211,7 +211,7 @@ contract MetaMall is ERC4907 {
     function setSaleable(uint floor, uint storeNumber, bool _saleable) public {
         require(_isApprovedOrOwner(_msgSender(), stores[floor][storeNumber].tokenId), "Caller is not token owner nor approved");
         require(floor < stores.length, "Invalid Floor");
-        require(storeNumber < stores[floor][stores[floor].length].storeNumber , "Invalid Store");
+        require(storeNumber <= stores[floor][stores[floor].length - 1].storeNumber , "Invalid Store");
 
         uint256 tokenId = stores[floor][storeNumber].tokenId;
         require(userOf(tokenId) == address(0), "Store is rented out. Wait for rent tenure to be over before selling.");
@@ -220,7 +220,7 @@ contract MetaMall is ERC4907 {
 
     function rent(uint floor, uint storeNumber, uint256 _tokenId, uint64 month) public payable virtual {
        require(floor < stores.length, "Invalid Floor");
-        require(storeNumber < stores[floor][stores[floor].length].storeNumber , "Invalid Store");
+        require(storeNumber <= stores[floor][stores[floor].length - 1].storeNumber , "Invalid Store");
 
         uint256 dueAmount = stores[floor][storeNumber].rent * month;
         require(msg.value == dueAmount, "Incorrect amount");
@@ -240,7 +240,7 @@ contract MetaMall is ERC4907 {
 
     function buy(uint floor, uint storeNumber, uint256 _tokenId) public payable {
         require(floor < stores.length, "Invalid Floor");
-        require(storeNumber <= stores[floor][stores[floor].length -1].storeNumber , "Invalid Store");
+        require(storeNumber <= stores[floor][stores[floor].length - 1].storeNumber , "Invalid Store");
         require(stores[floor][storeNumber].isSaleable == true, "This land is not availble for sale.");
         require(msg.value >= stores[floor][storeNumber].price, "Incorrect amount");
 
