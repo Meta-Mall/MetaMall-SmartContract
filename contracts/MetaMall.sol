@@ -52,7 +52,7 @@ contract MetaMall is ERC4907 {
         stores.push();
 
         //Floor 0
-        for (uint16 i = 0; i < 32; i++) {
+        for (uint16 i = 0; i < 30; i++) {
             stores[0].push(Store(address(this), mint(), i, 100000000000000000, 0, true, false));
         }
 
